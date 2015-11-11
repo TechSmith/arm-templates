@@ -1,0 +1,114 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "siteName": {
+            "type": "string"
+        },
+        "hostingPlanName": {
+            "type": "string"
+        },
+        "siteLocation": {
+            "type": "string"
+        },
+        "autoscaleEnabled": {
+            "type": "bool"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2014-06-01",
+            "name": "[parameters('siteName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('siteLocation')]",
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "empty"
+            },
+            "properties": {
+                "name": "[parameters('siteName')]",
+                "serverFarm": "[parameters('hostingPlanName')]"
+            }
+        },
+        {
+          "apiVersion": "2014-04-01",
+          "name": "[concat('ServerErrors ', parameters('siteName'))]",
+          "type": "microsoft.insights/alertrules",
+          "location": "East US",
+          "dependsOn": [
+	          "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
+	      ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('siteName'))]": "Resource"
+            },
+          "properties": {
+            "name": "[concat('ServerErrors ', parameters('siteName'))]",
+            "description": "[concat(parameters('siteName'), ' has some server errors, status code 5xx.')]",
+            "isEnabled": false,
+            "condition": {
+              "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+              "dataSource": {
+                "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('siteName'))]",
+                "metricName": "Http5xx"
+              },
+              "operator": "GreaterThan",
+              "threshold": 0.0,
+              "windowSize": "PT5M"
+            },
+            "action": {
+              "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+              "sendToServiceOwners": true,
+              "customEmails": []
+            }
+          }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[concat('ForbiddenRequests ', parameters('siteName'))]",
+            "type": "microsoft.insights/alertrules",
+            "location": "East US",
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('siteName'))]": "Resource"
+            },
+            "properties": {
+                "name": "[concat('ForbiddenRequests ', parameters('siteName'))]",
+                "description": "[concat(parameters('siteName'), ' has some requests that are forbidden, status code 403.')]",
+                "isEnabled": false,
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('siteName'))]",
+                        "metricName": "Http403"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": []
+                }
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[parameters('siteName')]",
+            "type": "microsoft.insights/components",
+            "location": "Central US",
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('siteName'))]": "Resource"
+            },
+            "properties": {
+                "ApplicationId": "[parameters('siteName')]"
+            }
+        }
+    ]
+}
