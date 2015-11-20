@@ -92,10 +92,10 @@
                         "[concat('Microsoft.Sql/servers/', parameters('serverName'))]"
                     ],
                     "location": "[resourceGroup().location]",
-                    "name": "[properties('firewallRuleName')]",
+                    "name": "[parameters('firewallRuleName')]",
                     "properties": {
-                        "endIpAddress": "[properties('firewallRuleNameEndIp')]",
-                        "startIpAddress": "[properties('firewallRuleNameStartIp')]"
+                        "endIpAddress": "[parameters('firewallRuleNameEndIp')]",
+                        "startIpAddress": "[parameters('firewallRuleNameStartIp')]"
                     }
                 }
             ]
