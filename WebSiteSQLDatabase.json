@@ -29,6 +29,15 @@
         "requestedServiceObjectiveId": {
             "type": "string",
             "defaultValue": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c"
+        },
+        "firewallRuleName": {
+            "type": "string"
+        },
+        "firewallRuleNameEndIp": {
+            "type": "string"
+        },
+        "firewallRuleNameStartIp": {
+            "type": "string"
         }
     },
     "resources": [
@@ -74,6 +83,19 @@
                     "properties": {
                         "endIpAddress": "0.0.0.0",
                         "startIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "type": "firewallrules",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', parameters('serverName'))]"
+                    ],
+                    "location": "[resourceGroup().location]",
+                    "name": "[properties('firewallRuleName')]",
+                    "properties": {
+                        "endIpAddress": "[properties('firewallRuleNameEndIp')]",
+                        "startIpAddress": "[properties('firewallRuleNameStartIp')]"
                     }
                 }
             ]
